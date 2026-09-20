@@ -1,0 +1,62 @@
+name: COBOL CI
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  compile-and-run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install GnuCOBOL
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gnucobol
+
+      - name: Compile and run all programs
+        run: |
+          mkdir -p bin
+          STATUS=0
+          mapfile -t FILES < <(find programs -name '*.cbl' ! -name '*template*' | sort)
+          for f in "${FILES[@]}"; do
+            BASENAME=$(basename "$f" .cbl)
+            DIRNAME=$(dirname "$f")
+            BIN="bin/${BASENAME}"
+
+            echo "::group::🔧 Compiling $f"
+            if cobc -x -free "$f" -o "$BIN" 2>&1; then
+              echo "✅ Compile OK"
+            else
+              echo "❌ Compile FAILED"
+              STATUS=1
+            fi
+            echo "::endgroup::"
+
+            # Always attempt run if compile succeeded (even if prior programs failed)
+            if [ -f "$BIN" ]; then
+              echo "::group::▶ Running $f"
+              if [ -f "$DIRNAME/test-input.txt" ]; then
+                echo "Using test-input.txt"
+                if timeout 10 "$BIN" < "$DIRNAME/test-input.txt" 2>&1; then
+                  echo "✅ Run OK"
+                else
+                  echo "❌ Run FAILED (exit code: $?)"
+                  STATUS=1
+                fi
+              else
+                echo "No test-input.txt, running without input"
+                if timeout 10 "$BIN" 2>&1; then
+                  echo "✅ Run OK"
+                else
+                  echo "❌ Run FAILED (exit code: $?)"
+                  STATUS=1
+                fi
+              fi
+              echo "::endgroup::"
+            fi
+          done
+          echo "Final STATUS=$STATUS"
+          exit $STATUS

@@ -1,0 +1,56 @@
+name: Task Issue
+description: Claim a COBOL cookbook task
+title: "[Task] <program-name>"
+labels: ["good first issue"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Task Description
+        <!-- What should the program do? -->
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      description: Exact expected output (copy-paste from issue)
+      placeholder: |
+        Line 1 of output
+        Line 2 of output
+        ...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: tier
+    attributes:
+      label: Difficulty Tier
+      options:
+        - bronze
+        - silver
+        - gold
+    validations:
+      required: true
+
+  - type: textarea
+    id: hints
+    attributes:
+      label: Hints / Starter Skeleton
+      description: Link to hints or the COBOL skeleton to use
+      placeholder: |
+        ```cobol
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. YOURPROG.
+        *> Author: <your-github-handle>
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+        01 WS-NUMBER PIC 9(3) VALUE 1.
+        PROCEDURE DIVISION.
+            PERFORM UNTIL WS-NUMBER > 50
+            *> your logic here
+                ADD 1 TO WS-NUMBER
+            END-PERFORM
+            STOP RUN.
+        ```
+    validations:
+      required: true
